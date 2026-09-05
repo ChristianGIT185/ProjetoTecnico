@@ -1,0 +1,53 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-05T00:00:00.000Z",
+  "__export_source": "tarefas-api",
+  "resources": [
+    {
+      "_id": "req_criar_tarefa",
+      "parentId": "wrk_tarefas",
+      "name": "Criar tarefa",
+      "method": "POST",
+      "url": "http://localhost:8080/api/tarefas",
+      "body": { "mimeType": "application/json", "text": "{\n  \"titulo\": \"Estudar Spring Boot\",\n  \"descricao\": \"Revisar JPA, H2 e arquitetura em camadas\",\n  \"concluida\": false\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }]
+    },
+    {
+      "_id": "req_listar_tarefas",
+      "parentId": "wrk_tarefas",
+      "name": "Listar tarefas",
+      "method": "GET",
+      "url": "http://localhost:8080/api/tarefas"
+    },
+    {
+      "_id": "req_buscar_tarefa",
+      "parentId": "wrk_tarefas",
+      "name": "Buscar tarefa por ID",
+      "method": "GET",
+      "url": "http://localhost:8080/api/tarefas/1"
+    },
+    {
+      "_id": "req_atualizar_tarefa",
+      "parentId": "wrk_tarefas",
+      "name": "Atualizar tarefa",
+      "method": "PUT",
+      "url": "http://localhost:8080/api/tarefas/1",
+      "body": { "mimeType": "application/json", "text": "{\n  \"titulo\": \"Estudar Spring Boot\",\n  \"descricao\": \"Conteúdo revisado\",\n  \"concluida\": true\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }]
+    },
+    {
+      "_id": "req_excluir_tarefa",
+      "parentId": "wrk_tarefas",
+      "name": "Excluir tarefa",
+      "method": "DELETE",
+      "url": "http://localhost:8080/api/tarefas/1"
+    },
+    {
+      "_id": "wrk_tarefas",
+      "parentId": null,
+      "name": "API de Tarefas",
+      "_type": "request_group"
+    }
+  ]
+}

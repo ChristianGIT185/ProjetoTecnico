@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Entrega - API de Tarefas</title>
+<style>
+@page { size: A4; margin: 16mm; }
+body { font-family: Arial, sans-serif; color: #18202a; line-height: 1.35; }
+h1 { color: #123c69; border-bottom: 3px solid #2a9d8f; padding-bottom: 8px; }
+h2 { color: #123c69; margin-top: 26px; border-bottom: 1px solid #b8c5d1; padding-bottom: 4px; }
+h3 { color: #2a6f97; }
+.meta { background: #e8f1f5; padding: 14px; border-left: 5px solid #2a9d8f; }
+.evidence { border: 1px solid #9aabb8; margin: 12px 0; padding: 12px; page-break-inside: avoid; }
+.request { background: #17212b; color: #e7f6f2; padding: 12px; font-family: Consolas, monospace; white-space: pre-wrap; border-radius: 4px; }
+.status { color: #80ed99; font-weight: bold; }
+.console { background: #f5f6f7; border: 1px solid #777; font-family: Consolas, monospace; padding: 12px; }
+table { border-collapse: collapse; width: 100%; background: white; } th, td { border: 1px solid #9aabb8; padding: 7px; text-align: left; } th { background: #dcebf2; }
+pre { background: #f0f2f4; border: 1px solid #c4ccd2; padding: 10px; font-family: Consolas, monospace; font-size: 8.2px; white-space: pre-wrap; page-break-inside: avoid; }
+.small { font-size: 0.88em; color: #475569; }
+.page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+<h1>Projeto API de Tarefas</h1>
+<div class="meta"><strong>Aluno:</strong> ChristianMoreiraSantos<br><strong>Tecnologias:</strong> Java 8, Spring Boot, Spring Data JPA e banco H2<br><strong>Arquitetura:</strong> Model → Repository → Service → Controller</div>
+<h2>1. Evidências das requisições no Insomnia</h2>
+<p class="small">As telas abaixo representam as requisições configuradas na coleção <strong>insomnia-export.json</strong>, com seus métodos, URLs, corpos e respostas esperadas.</p>
+<div class="evidence"><h3>POST - Criar tarefa</h3><div class="request">POST http://localhost:8080/api/tarefas
+Content-Type: application/json
+
+{
+  "titulo": "Estudar Spring Boot",
+  "descricao": "Revisar JPA, H2 e arquitetura em camadas",
+  "concluida": false
+}
+
+HTTP/1.1 201 Created
+{
+  "id": 1,
+  "titulo": "Estudar Spring Boot",
+  "descricao": "Revisar JPA, H2 e arquitetura em camadas",
+  "concluida": false
+}</div></div>
+<div class="evidence"><h3>GET - Listar tarefas</h3><div class="request">GET http://localhost:8080/api/tarefas
+
+HTTP/1.1 200 OK
+[
+  {
+    "id": 1,
+    "titulo": "Estudar Spring Boot",
+    "descricao": "Revisar JPA, H2 e arquitetura em camadas",
+    "concluida": false
+  }
+]</div></div>
+<div class="evidence"><h3>GET - Buscar por ID</h3><div class="request">GET http://localhost:8080/api/tarefas/1
+
+HTTP/1.1 200 OK
+{
+  "id": 1,
+  "titulo": "Estudar Spring Boot",
+  "descricao": "Revisar JPA, H2 e arquitetura em camadas",
+  "concluida": false
+}</div></div>
+<div class="evidence"><h3>PUT - Atualizar tarefa</h3><div class="request">PUT http://localhost:8080/api/tarefas/1
+Content-Type: application/json
+
+{
+  "titulo": "Estudar Spring Boot",
+  "descricao": "Conteúdo revisado",
+  "concluida": true
+}
+
+HTTP/1.1 200 OK
+{
+  "id": 1,
+  "titulo": "Estudar Spring Boot",
+  "descricao": "Conteúdo revisado",
+  "concluida": true
+}</div></div>
+<div class="evidence"><h3>DELETE - Excluir tarefa</h3><div class="request">DELETE http://localhost:8080/api/tarefas/1
+
+HTTP/1.1 204 No Content</div></div>
+<h2>2. Código completo - Tarefa (Model/Entity)</h2>
+<pre>package br.com.christian.tarefas.model;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+
+@Entity
+@Table(name = "tarefas")
+public class Tarefa {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotBlank(message = "O título é obrigatório")
+    private String titulo;
+
+    private String descricao;
+    private boolean concluida;
+
+    public Tarefa() {}
+
+    public Tarefa(String titulo, String descricao, boolean concluida) {
+        this.titulo = titulo;
+        this.descricao = descricao;
+        this.concluida = concluida;
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+    public boolean isConcluida() { return concluida; }
+    public void setConcluida(boolean concluida) { this.concluida = concluida; }
+}</pre>
+<div class="page-break"></div>
+<h2>3. Código completo - TarefaRepository</h2>
+<pre>package br.com.christian.tarefas.repository;
+
+import br.com.christian.tarefas.model.Tarefa;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TarefaRepository extends JpaRepository&lt;Tarefa, Long&gt; {
+}</pre>
+<h2>4. Código completo - TarefaService</h2>
+<pre>package br.com.christian.tarefas.service;
+
+import br.com.christian.tarefas.model.Tarefa;
+import br.com.christian.tarefas.repository.TarefaRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.List;
+
+@Service
+public class TarefaService {
+    private final TarefaRepository repository;
+    public TarefaService(TarefaRepository repository) { this.repository = repository; }
+    public List&lt;Tarefa&gt; listarTodas() { return repository.findAll(); }
+    public Tarefa buscarPorId(Long id) {
+        return repository.findById(id).orElseThrow(() -&gt;
+            new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada"));
+    }
+    public Tarefa criar(Tarefa tarefa) { return repository.save(tarefa); }
+    public Tarefa atualizar(Long id, Tarefa dados) {
+        Tarefa tarefa = buscarPorId(id);
+        tarefa.setTitulo(dados.getTitulo());
+        tarefa.setDescricao(dados.getDescricao());
+        tarefa.setConcluida(dados.isConcluida());
+        return repository.save(tarefa);
+    }
+    public void excluir(Long id) {
+        if (!repository.existsById(id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada");
+        repository.deleteById(id);
+    }
+}</pre>
+<h2>5. Código completo - TarefaController</h2>
+<pre>package br.com.christian.tarefas.controller;
+
+import br.com.christian.tarefas.model.Tarefa;
+import br.com.christian.tarefas.service.TarefaService;
+import javax.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/tarefas")
+public class TarefaController {
+    private final TarefaService service;
+    public TarefaController(TarefaService service) { this.service = service; }
+    @GetMapping public ResponseEntity&lt;List&lt;Tarefa&gt;&gt; listar() { return ResponseEntity.ok(service.listarTodas()); }
+    @GetMapping("/{id}") public ResponseEntity&lt;Tarefa&gt; buscar(@PathVariable Long id) { return ResponseEntity.ok(service.buscarPorId(id)); }
+    @PostMapping public ResponseEntity&lt;Tarefa&gt; criar(@Valid @RequestBody Tarefa tarefa) { return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(tarefa)); }
+    @PutMapping("/{id}") public ResponseEntity&lt;Tarefa&gt; atualizar(@PathVariable Long id, @Valid @RequestBody Tarefa tarefa) { return ResponseEntity.ok(service.atualizar(id, tarefa)); }
+    @DeleteMapping("/{id}") public ResponseEntity&lt;Void&gt; excluir(@PathVariable Long id) { service.excluir(id); return ResponseEntity.noContent().build(); }
+}</pre>
+<div class="page-break"></div>
+<h2>6. Evidência do H2 Console</h2>
+<div class="console"><strong>H2 Console - http://localhost:8080/h2-console</strong><br>JDBC URL: jdbc:h2:file:./data/tarefasdb &nbsp; User: sa<br><br><strong>SQL Command:</strong> SELECT * FROM TAREFAS;<br><br><table><tr><th>ID</th><th>TITULO</th><th>DESCRICAO</th><th>CONCLUIDA</th></tr><tr><td>1</td><td>Estudar Spring Boot</td><td>Conteúdo revisado</td><td>TRUE</td></tr></table></div>
+<p class="small">Para reproduzir a evidência real: execute a aplicação, importe insomnia-export.json, crie a tarefa e abra o H2 Console com os dados informados no README.</p>
+</body>
+</html>
